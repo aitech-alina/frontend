@@ -4,34 +4,52 @@ import axios from "axios";
 function App() {
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const uploadFile = async () => {
     if (!file) {
-      setError("Please choose a file first.");
+      alert("Please select a file first");
       return;
     }
-
-    setError("");
 
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await axios.post("http://127.0.0.1:8000/process", formData);
-    setResult(res.data);
+    try {
+      setLoading(true);
+
+      const res = await axios.post(
+        "http://127.0.0.1:8000/process",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setResult(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Error connecting to backend ");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h1>AI Lecture Summarizer</h1>
 
       <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-      <button onClick={uploadFile}>Upload</button>
+      <br /><br />
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <button onClick={uploadFile}>
+        {loading ? "Processing..." : "Upload"}
+      </button>
 
       {result && (
-        <div>
+        <div style={{ marginTop: "20px" }}>
           <h2>Summary</h2>
           <p>{result.summary}</p>
 
